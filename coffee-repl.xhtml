@@ -14,25 +14,38 @@
       coffee-script {display: none; }
       log, repl { display: block; }
       log  { max-height: 100px; overflow: auto; }
-      repl { width: 200px;}
-      .entry { border-left: 5px solid blue; }
+      statement  {display: block; color: white; padding-left: 3px;}
+      result {display: block; color: white; border-bottom: 1px solid gray; }
+      repl { width: 200px; background-color: black; padding: 3px;}
+      .entry { border-left: 5px solid blue; background-color: none; }
     </style>
 
 
     <coffee-script><![CDATA[
       CoffeeScript.compile("entry.value", window) #weird 1st time...
+      
       log = Element 'log', {}
+      log.scroll_down = ->
+        log.scrollTop = log.scrollHeight - log.offsetHeight
+      
+      window.log = log
       entry = Element 'input', {type: 'text', class: 'entry'}
       entry.onkeydown = (ev) -> 
         if ev.keyIdentifier == 'Enter'
+          statement = entry.value
           
-          js = CoffeeScript.compile(entry.value, window)
+          js = CoffeeScript.compile(statement, window)
           result = eval( js )
-          logline = Element 'div', {}, [ result.toString() ]
+          statement_element = Element 'statement', {}, [statement]
+          logline = Element 'result', {}, [ "=> " + result.toString() ]
+          log.append statement_element
           log.append logline
+          entry.value = ''
+          do log.scroll_down
       
       repl = Element 'repl', {}, [ log, entry ]
-    
+      window.repl = repl
+      
       document.body.append repl
       do entry.focus
       
