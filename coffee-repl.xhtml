@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<html xmlns='http://www.w3.org/1999/xhtml'>
+  <head>
+    <title> CoffeeScript REPL </title>
+    <script src="helpers/helpers.js"/> 
+    <script src='helpers/coffee-script.js'/>
+    <coffee-script><![CDATA[
+
+    ]]></coffee-script>
+  </head>
+  <body>
+
+    <style> 
+      coffee-script {display: none; }
+      log, repl { display: block; }
+      log  { max-height: 100px; overflow: auto; }
+      repl { width: 200px;}
+      .entry { border-left: 5px solid blue; }
+    </style>
+
+
+    <coffee-script><![CDATA[
+      CoffeeScript.compile("entry.value", window) #weird 1st time...
+      log = Element 'log', {}
+      entry = Element 'input', {type: 'text', class: 'entry'}
+      entry.onkeydown = (ev) -> 
+        if ev.keyIdentifier == 'Enter'
+          
+          js = CoffeeScript.compile(entry.value, window)
+          result = eval( js )
+          logline = Element 'div', {}, [ result.toString() ]
+          log.append logline
+      
+      repl = Element 'repl', {}, [ log, entry ]
+    
+      document.body.append repl
+      do entry.focus
+      
+
+      
+    ]]></coffee-script>
+
+    <script><![CDATA[
+      var loadCoffeeScripts = function() {
+        var scripts = document.getElementsByTagName("coffee-script");
+        scripts.forEach( function(script) {
+          CoffeeScript.run(script.textContent);
+        });
+      };
+
+      loadCoffeeScripts();
+
+
+    ]]></script>
+
+  </body>
+</html>
