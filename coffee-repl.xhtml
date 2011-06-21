@@ -120,6 +120,7 @@
             log.history.pointer -= 1
             log.history.current().className = 'selected'
             entry.value = log.history.current().statement
+            
             return
           
           # Reached top of history
@@ -132,6 +133,9 @@
             log.history.pointer -= 1
             log.history.current().className = 'selected'
             entry.value = log.history.current().statement
+            
+            log.scrollTo( log.history.current() )
+            
             return
             
         
@@ -144,9 +148,11 @@
               # if still looking up
               log.history.current().className = 'selected'
               entry.value = log.history.current().statement
+              log.scrollTo( log.history.current() )
             else 
               # exit lookup mode restores buffer
               entry.value = log.history.entry_buffer
+              log.scroll_down()
             return
           
       repl = Element 'repl', {}, [ log, entry ]
