@@ -18,12 +18,41 @@
       result {display: block; color: white; border-bottom: 1px solid gray; }
       repl { width: 200px; background-color: black; padding: 3px;}
       .entry { border-left: 5px solid blue; background-color: none; }
+      
+      boolean  { color: gray; }
+      number   { color: green;  }
+      string   { color: red; }
+      function { color: lightblue; }
+      array    { color: blue }
+      object   { color: white; font-weight: bold; }
+      error    { color: black; background-color: red; border: white; display: block; padding: 3px; }
+      
     </style>
 
 
     <coffee-script><![CDATA[
       CoffeeScript.compile("entry.value", window) #weird 1st time...
+
+      dom_object_view = (obj) ->
+        if [null, undefined, true, false].includes obj
+          return Element 'boolean', {}, ['' + obj]
+        if typeof obj == 'number'
+          return Element 'number', {}, ['' + obj]
+        if typeof obj == 'string'
+          return Element 'string', {}, ['"' + obj + '"'  ]
+        if typeof obj == 'function'
+          return Element 'function', {}, ['fn(' + obj.signature() + ")->" ]
+        if obj instanceof Array
+          return Element 'array', {}, ['[' + obj.toString() + "]" ]
+        if obj instanceof Error
+          return Element 'error', {}, [ obj.toString() ]
+        if obj instanceof Object
+          return Element 'object', {}, ['{' + obj.toString() + "}" ]
+        
+        "obj"
       
+
+
       log = Element 'log', {}
       log.scroll_down = ->
         log.scrollTop = log.scrollHeight - log.offsetHeight
@@ -35,9 +64,13 @@
           statement = entry.value
           
           js = CoffeeScript.compile(statement, window)
-          result = eval( js )
+          try
+            result = eval( js )
+          catch e
+            result = e
+            
           statement_element = Element 'statement', {}, [statement]
-          logline = Element 'result', {}, [ "=> " + result.toString() ]
+          logline = Element 'result', {}, [ "=> ", dom_object_view(result) ]
           log.append statement_element
           log.append logline
           entry.value = ''
