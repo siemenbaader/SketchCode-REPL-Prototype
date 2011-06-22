@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<html xmlns='http://www.w3.org/1999/xhtml'>
+  <head>
+    <title> CoffeeScript Editor </title>
+    <script src="helpers/helpers.js"/> 
+    <script src='helpers/coffee-script.js'/>
+    <coffee-script><![CDATA[
+
+    ]]></coffee-script>
+  </head>
+  <body>
+
+    <style> 
+      coffee-script {display: none; }
+
+      repl { width: 200px; background-color: black; padding: 3px;}
+      .entry { border-left: 5px solid blue; background-color: none; }
+      .editor { width: 400px; height: 300px }
+</style>
+
+
+    <coffee-script><![CDATA[
+      editor = Element 'textarea', {class: 'editor'}
+      document.body.append editor
+      do editor.focus
+      window.editor = editor
+      
+      editor.onkeydown = ->
+        
+      editor.selection = ->
+        @value[@selectionStart..@selectionEnd]
+      
+]]></coffee-script>
+
+    <script><![CDATA[
+      var loadCoffeeScripts = function() {
+        var scripts = document.getElementsByTagName("coffee-script");
+        scripts.forEach( function(script) {
+          CoffeeScript.run(script.textContent);
+        });
+      };
+
+      loadCoffeeScripts();
+
+
+    ]]></script>
+
+  </body>
+</html>
