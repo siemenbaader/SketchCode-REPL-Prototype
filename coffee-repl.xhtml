@@ -78,21 +78,8 @@
             log.history.current().className = ''
             log.history.pointer = log.history.length 
         
-          statement = entry.value
- 
-          try
-            js = CoffeeScript.compile(statement, window)
-            result = eval( js )
-          catch e
-            result = e
+          repl.eval( entry.value )
             
-          statement_element = Element 'statement', {}, [statement]
-          statement_element.statement = statement
-          logline = Element 'result', {}, [ "=> ", dom_object_view(result) ]
-          log.append statement_element
-          log.history.push statement_element
-          log.history.pointer = log.history.length # 1 bigger means current HEAD
-          log.append logline
           entry.value = ''
           do log.scroll_down
           return
@@ -120,7 +107,6 @@
             log.history.pointer -= 1
             log.history.current().className = 'selected'
             entry.value = log.history.current().statement
-            
             return
           
           # Reached top of history
@@ -133,9 +119,7 @@
             log.history.pointer -= 1
             log.history.current().className = 'selected'
             entry.value = log.history.current().statement
-            
             log.scrollTo( log.history.current() )
-            
             return
             
         
@@ -156,6 +140,26 @@
             return
           
       repl = Element 'repl', {}, [ log, entry ]
+
+      repl.eval = ( statement ) ->
+        "Ealuates statement, logs it and logs the result."
+        
+        try
+          js = CoffeeScript.compile(statement, window)
+          result = eval( js )
+        catch e
+          result = e
+        
+        statement_element = Element 'statement', {}, [statement]
+        statement_element.statement = statement
+        logline = Element 'result', {}, [ "=> ", dom_object_view(result) ]
+        log.append statement_element
+        log.history.push statement_element
+        log.history.pointer = log.history.length # 1 bigger means current HEAD
+        log.append logline
+
+
+
       window.repl = repl
 
       document.body.append repl
