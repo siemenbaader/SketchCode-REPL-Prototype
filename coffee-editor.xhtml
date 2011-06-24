@@ -12,33 +12,54 @@
 
     <style> 
       coffee-script {display: none; }
-      
+      textarea { display: block; }
 </style>
 
     <script src="repl.js"/>
     <coffee-script><![CDATA[
-      editor = Element 'textarea', {class: 'editor'}
+      editor = new Element 'textarea', {style: 'width: 300px; height: 200px;'}
+      
+      presetup = new Element 'textarea', {style: 'width: 300px;'}
+      repl = new Repl()
+      
+      enter_repl_keylistener = (ev) ->
+        if ev.keyIdentifier == 'Enter' and ev.ctrlKey
+          do enter_repl_mode
+      
+      reload_repl = ()->
+        CoffeeScript.eval presetup.value, window
+        CoffeeScript.eval editor.value, window
+        do repl.focus
+      
+      leave_repl_mode = ()->
+        [presetup, repl].forEach (it)->
+          do it.remove
+        repl = new Repl()
+        editor.onkeydown = enter_repl_keylistener
+          
+        do editor.focus
+        
+      enter_repl_mode = ()->
+        document.body.prepend presetup
+        document.body.append repl
+        [presetup, editor, repl].forEach (it)->
+          it.onkeydown = (ev)->
+            if ev.keyIdentifier == 'Enter' and ev.ctrlKey
+              do reload_repl
+              return
+            if ev.keyIdentifier == 'U+001B' #Escape
+              ev.preventDefault()
+              do leave_repl_mode
+        CoffeeScript.eval presetup.value, window
+        CoffeeScript.eval editor.value, window
+        
+        do repl.focus
+
+      editor.onkeydown = enter_repl_keylistener
+      
       document.body.append editor
       do editor.focus
-      window.editor = editor
-      
-      repl = null
-      
-      editor.onkeydown = (ev) ->
-        if ev.keyIdentifier == 'Enter' and ev.ctrlKey
-          if repl
-            do repl.remove
-          repl = new Repl()
-          window.repl = repl
-          repl.onescape = ->
-            do repl.remove
-            repl = null
-            do editor.focus
-          document.body.append repl
-          repl.eval editor.value
-          do repl.focus
-        
-        
+            
       editor.selection = ->
         @value[@selectionStart..@selectionEnd]
       
