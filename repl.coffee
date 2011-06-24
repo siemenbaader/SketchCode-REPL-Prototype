@@ -75,7 +75,6 @@ Repl = ->
     
       # Entering history lookup, saving old input value
       if not log.history.lookup_mode()
-        l 'enter'
         log.history.entry_buffer = entry.value
         log.history.pointer -= 1
         log.history.current().set_style('selected')
@@ -124,6 +123,7 @@ Repl = ->
       result = e
     
     statement_element = Element 'statement', {}, [statement]
+    statement_element.statement = statement
     statement_element.styles = {
       normal: 'display: block; color: white; padding-left: 3px;',
       selected: 'display: block; color: white; padding-left: 3px; background-color: darkgreen;'
