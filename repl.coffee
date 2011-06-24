@@ -14,6 +14,9 @@ Repl = ->
       return Element 'array', {style: 'color: blue;'}, ['[' + obj.toString() + "]" ]
     if obj instanceof Error
       return Element 'error', {style: 'color: black; background-color: red; border: white; display: block; padding: 3px;'}, [ obj.toString() ]
+
+    if obj instanceof HTMLElement
+      return obj
     if obj instanceof Object
       return Element 'object', {style: 'color: white; font-weight: bold;'}, ['{' + obj.toString() + "}" ]
     
@@ -38,6 +41,14 @@ Repl = ->
   
   window.log = log
   entry = Element 'input', {type: 'text',  style: 'border-left: 5px solid blue; background-color: none;'}
+  entry.styles = {
+    normal: 'border-left: 5px solid blue; background-color: none;'
+    selected : 'border-left: 5px solid blue; background-color: darkgreen;'
+  }
+  
+  entry.set_style = ( preset )->
+    @style.cssText = @styles[ preset ]
+  entry.set_style 'selected'
   
   entry.onkeydown = (ev) -> 
     if ev.keyIdentifier == 'U+001B' #Escape
@@ -79,6 +90,7 @@ Repl = ->
         log.history.pointer -= 1
         log.history.current().set_style('selected')
         entry.value = log.history.current().statement
+        entry.set_style 'normal'
         return
       
       # Reached top of history
@@ -108,6 +120,7 @@ Repl = ->
         else 
           # exit lookup mode restores buffer
           entry.value = log.history.entry_buffer
+          entry.set_style 'selected'
           log.scroll_down()
         return
   repl.append log
