@@ -3,25 +3,28 @@ CoffeeScript.compile("entry.value", window) #weird 1st time...
 Repl = ->
   dom_object_view = (obj) ->
     if [null, undefined, true, false].includes obj
-      return Element 'boolean', {}, ['' + obj]
+      return Element 'boolean', {style: 'color: gray;'}, ['' + obj]
     if typeof obj == 'number'
-      return Element 'number', {}, ['' + obj]
+      return Element 'number',  {style: 'color: green;'}, ['' + obj]
     if typeof obj == 'string'
-      return Element 'string', {}, ['"' + obj + '"'  ]
+      return Element 'string', {style: 'color: red;'}, ['"' + obj + '"'  ]
     if typeof obj == 'function'
-      return Element 'function', {}, ['fn(' + obj.signature() + ")->" ]
+      return Element 'function', {style: 'color: lightblue;' }, ['fn(' + obj.signature() + ")->" ]
     if obj instanceof Array
-      return Element 'array', {}, ['[' + obj.toString() + "]" ]
+      return Element 'array', {style: 'color: blue;'}, ['[' + obj.toString() + "]" ]
     if obj instanceof Error
-      return Element 'error', {}, [ obj.toString() ]
+      return Element 'error', {style: 'color: black; background-color: red; border: white; display: block; padding: 3px;'}, [ obj.toString() ]
     if obj instanceof Object
-      return Element 'object', {}, ['{' + obj.toString() + "}" ]
+      return Element 'object', {style: 'color: white; font-weight: bold;'}, ['{' + obj.toString() + "}" ]
     
     "obj"
   
+  repl = Element 'repl', {style: 'display: block; width: 200px; background-color: black; padding: 3px;'}
+  
 
-
-  log = Element 'log', {}
+  log = Element 'log',   {style: 'display: block;
+                                 max-height: 100px;
+                                 overflow: auto;' }
   log.history = []
   log.history.pointer = 0
   log.history.current = () -> log.history[log.history.pointer]
@@ -34,15 +37,18 @@ Repl = ->
     log.scrollTop = log.scrollHeight - log.offsetHeight
   
   window.log = log
-  entry = Element 'input', {type: 'text', class: 'entry'}
+  entry = Element 'input', {type: 'text',  style: 'border-left: 5px solid blue; background-color: none;'}
   
   entry.onkeydown = (ev) -> 
+    if ev.keyIdentifier == 'U+001B' #Escape
+      do repl.onescape
+      return
   
     if ev.keyIdentifier == 'Enter'
     
       # Leave lookup mode
       if log.history.lookup_mode()
-        log.history.current().className = ''
+        log.history.current().set_style 'normal'
         log.history.pointer = log.history.length 
     
       repl.eval( entry.value )
@@ -72,7 +78,7 @@ Repl = ->
         l 'enter'
         log.history.entry_buffer = entry.value
         log.history.pointer -= 1
-        log.history.current().className = 'selected'
+        log.history.current().set_style('selected')
         entry.value = log.history.current().statement
         return
       
@@ -82,9 +88,9 @@ Repl = ->
 
       # Moving up one item
       if log.history.lookup_mode()
-        log.history.current().className = ''
+        log.history.current().set_style('normal')
         log.history.pointer -= 1
-        log.history.current().className = 'selected'
+        log.history.current().set_style('selected')
         entry.value = log.history.current().statement
         log.scrollTo( log.history.current() )
         return
@@ -92,12 +98,12 @@ Repl = ->
     
     # Down only happens in lookup mode
     if ev.keyIdentifier == 'Down' and log.history.lookup_mode()
-        log.history.current().className = ''
+        log.history.current().set_style 'normal'
         
         log.history.pointer = log.history.pointer + 1
         if log.history.lookup_mode() 
           # if still looking up
-          log.history.current().className = 'selected'
+          log.history.current().set_style('selected')
           entry.value = log.history.current().statement
           log.scrollTo( log.history.current() )
         else 
@@ -105,9 +111,9 @@ Repl = ->
           entry.value = log.history.entry_buffer
           log.scroll_down()
         return
-      
-  repl = Element 'repl', {}, [ log, entry ]
-
+  repl.append log
+  repl.append entry
+  
   repl.eval = ( statement ) ->
     "Ealuates statement, logs it and logs the result."
     
@@ -118,8 +124,16 @@ Repl = ->
       result = e
     
     statement_element = Element 'statement', {}, [statement]
-    statement_element.statement = statement
-    logline = Element 'result', {}, [ "=> ", dom_object_view(result) ]
+    statement_element.styles = {
+      normal: 'display: block; color: white; padding-left: 3px;',
+      selected: 'display: block; color: white; padding-left: 3px; background-color: darkgreen;'
+    }
+    statement_element.set_style = ( preset ) ->
+      @style.cssText = @styles[ preset ]
+    statement_element.set_style('normal')
+    
+    logline = Element 'result', {style: 'display: block; color: white; border-bottom: 1px solid gray;'}, [ "=> ", dom_object_view(result) ]
+    
     log.append statement_element
     log.history.push statement_element
     log.history.pointer = log.history.length # 1 bigger means current HEAD

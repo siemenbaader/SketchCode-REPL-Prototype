@@ -12,20 +12,32 @@
 
     <style> 
       coffee-script {display: none; }
-
-      repl { width: 200px; background-color: black; padding: 3px;}
-      .entry { border-left: 5px solid blue; background-color: none; }
-      .editor { width: 400px; height: 300px }
+      
 </style>
 
-
+    <script src="repl.js"/>
     <coffee-script><![CDATA[
       editor = Element 'textarea', {class: 'editor'}
       document.body.append editor
       do editor.focus
       window.editor = editor
       
-      editor.onkeydown = ->
+      repl = null
+      
+      editor.onkeydown = (ev) ->
+        if ev.keyIdentifier == 'Enter' and ev.ctrlKey
+          if repl
+            do repl.remove
+          repl = new Repl()
+          window.repl = repl
+          repl.onescape = ->
+            do repl.remove
+            repl = null
+            do editor.focus
+          document.body.append repl
+          repl.eval editor.value
+          do repl.focus
+        
         
       editor.selection = ->
         @value[@selectionStart..@selectionEnd]
