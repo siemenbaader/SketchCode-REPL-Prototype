@@ -28,6 +28,9 @@ Repl = ->
   log = Element 'log',   {style: 'display: block;
                                  max-height: 100px;
                                  overflow: auto;' }
+ 
+  window.log = log
+  # refactor - make History class to fix bug in reset
   log.history = []
   log.history.pointer = 0
   log.history.current = () -> log.history[log.history.pointer]
@@ -39,7 +42,24 @@ Repl = ->
   log.scroll_down = ->
     log.scrollTop = log.scrollHeight - log.offsetHeight
   
-  window.log = log
+  repl.reset = ->
+    "Clears the REPL, but replays sticky lines"
+    sticky_statements = log.history.filter ( statement_element )->
+      statement_element.sticky_checkbox.checked
+    log.history = []
+    log.history.pointer = 0
+    log.history.current = () -> log.history[log.history.pointer]
+    log.history.entry_buffer = '' # save entry during lookup
+    log.history.lookup_mode = ->
+    return true if @pointer >= 0 and @pointer < @length
+    false
+  
+    log.innerHTML = ''
+    sticky_statements.forEach (st)->
+      repl.eval st.statement  # also keep the statement selected. rework the APIs..!
+    
+
+ 
   entry = Element 'input', {type: 'text',  style: 'border-left: 5px solid blue; background-color: none;'}
   entry.styles = {
     normal: 'border-left: 5px solid blue; background-color: none;'
@@ -135,7 +155,9 @@ Repl = ->
     catch e
       result = e
     
-    statement_element = Element 'statement', {}, [statement]
+    window.s = sticky_checkbox = new Element 'input', {type: 'checkbox', style: 'float: right', checked: true}
+    statement_element = Element 'statement', {}, [statement, sticky_checkbox ]
+    statement_element.sticky_checkbox = sticky_checkbox
     statement_element.statement = statement
     statement_element.styles = {
       normal: 'display: block; color: white; padding-left: 3px;',
@@ -154,7 +176,7 @@ Repl = ->
   
   repl.focus = ->
     do entry.focus
-    
+
   return repl
 
 

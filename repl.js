@@ -51,6 +51,7 @@ Repl = function() {
                                  max-height: 100px;\
                                  overflow: auto;'
   });
+  window.log = log;
   log.history = [];
   log.history.pointer = 0;
   log.history.current = function() {
@@ -66,7 +67,27 @@ Repl = function() {
   log.scroll_down = function() {
     return log.scrollTop = log.scrollHeight - log.offsetHeight;
   };
-  window.log = log;
+  repl.reset = function() {
+    "Clears the REPL, but replays sticky lines";    var sticky_statements;
+    sticky_statements = log.history.filter(function(statement_element) {
+      return statement_element.sticky_checkbox.checked;
+    });
+    log.history = [];
+    log.history.pointer = 0;
+    log.history.current = function() {
+      return log.history[log.history.pointer];
+    };
+    log.history.entry_buffer = '';
+    log.history.lookup_mode = function() {};
+    if (this.pointer >= 0 && this.pointer < this.length) {
+      return true;
+    }
+    false;
+    log.innerHTML = '';
+    return sticky_statements.forEach(function(st) {
+      return repl.eval(st.statement);
+    });
+  };
   entry = Element('input', {
     type: 'text',
     style: 'border-left: 5px solid blue; background-color: none;'
@@ -135,14 +156,20 @@ Repl = function() {
   repl.append(log);
   repl.append(entry);
   repl.eval = function(statement) {
-    "Ealuates statement, logs it and logs the result.";    var js, logline, result, statement_element;
+    "Ealuates statement, logs it and logs the result.";    var js, logline, result, statement_element, sticky_checkbox;
     try {
       js = CoffeeScript.compile(statement, window);
       result = eval(js);
     } catch (e) {
       result = e;
     }
-    statement_element = Element('statement', {}, [statement]);
+    window.s = sticky_checkbox = new Element('input', {
+      type: 'checkbox',
+      style: 'float: right',
+      checked: true
+    });
+    statement_element = Element('statement', {}, [statement, sticky_checkbox]);
+    statement_element.sticky_checkbox = sticky_checkbox;
     statement_element.statement = statement;
     statement_element.styles = {
       normal: 'display: block; color: white; padding-left: 3px;',

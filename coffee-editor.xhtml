@@ -19,6 +19,8 @@
     <coffee-script><![CDATA[
       editor = new Element 'textarea', {style: 'width: 300px; height: 200px;'}
       
+      
+      
       presetup = new Element 'textarea', {style: 'width: 300px;'}
       repl = new Repl()
       
@@ -29,12 +31,12 @@
       reload_repl = ()->
         CoffeeScript.eval presetup.value, window
         CoffeeScript.eval editor.value, window
+        do repl.reset
         do repl.focus
       
       leave_repl_mode = ()->
         [presetup, repl].forEach (it)->
           do it.remove
-        repl = new Repl()
         editor.onkeydown = enter_repl_keylistener
           
         do editor.focus
@@ -42,6 +44,7 @@
       enter_repl_mode = ()->
         document.body.prepend presetup
         document.body.append repl
+        repl.reset
         [presetup, editor, repl].forEach (it)->
           it.onkeydown = (ev)->
             if ev.keyIdentifier == 'Enter' and ev.ctrlKey
